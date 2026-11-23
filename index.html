@@ -230,18 +230,42 @@ renderTasks();
 const PROJECTPILOT_API = "https://projectpilot-api.ayodejimarvelous27.workers.dev";
 
 async function checkProjectPilotBackend() {
+  let statusElement = document.getElementById("backend-status");
+
+  if (!statusElement) {
+    statusElement = document.createElement("div");
+    statusElement.id = "backend-status";
+    statusElement.style.cssText = `
+      position:fixed;
+      bottom:12px;
+      right:12px;
+      padding:10px 15px;
+      border-radius:8px;
+      background:#222;
+      color:white;
+      font:14px Arial,sans-serif;
+      z-index:99999;
+    `;
+    document.body.appendChild(statusElement);
+  }
+
+  statusElement.textContent = "Backend: Checking...";
+
   try {
     const response = await fetch(`${PROJECTPILOT_API}/api/health`);
     const data = await response.json();
 
-    console.log("ProjectPilot Backend:", data);
-    return data.status === "healthy";
+    statusElement.textContent =
+      response.ok && data.status === "healthy"
+        ? "Backend: Online ✓"
+        : "Backend: Connection issue";
   } catch (error) {
-    console.error("Backend connection failed:", error);
-    return false;
+    statusElement.textContent = "Backend: Offline";
   }
 }
 
 checkProjectPilotBackend();
 </script>
+
+
 </html>
