@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#090d18">
+<title>ProjectPilot</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:#090d18;color:#eef2ff;
+  font-family:Arial,sans-serif;padding:20px;
+}
+.container{max-width:850px;margin:auto}
+header{padding:25px 0}
+.logo{font-size:27px;font-weight:bold;color:#8b9cff}
+.logo span{color:#fff}
+.subtitle{color:#929bb2;margin-top:8px}
+.card{
+  background:#131b2c;border:1px solid #25314a;
+  border-radius:15px;padding:20px;margin:16px 0;
+}
+h2{font-size:17px;margin-bottom:16px}
+.stat-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px
+}
+.stat{
+  background:#1c2940;padding:16px;border-radius:12px
+}
+.stat strong{font-size:23px;display:block;margin-bottom:7px}
+.muted{color:#9ba8c2;font-size:13px}
+.provider{
+  display:flex;justify-content:space-between;
+  align-items:center;padding:13px 0;
+  border-bottom:1px solid #29354a
+}
+.badge{
+  background:#173b30;color:#6ee7b7;
+  padding:6px 10px;border-radius:20px;font-size:11px
+}
+button{
+  background:#6578ff;color:white;border:0;
+  border-radius:9px;padding:12px 16px;
+  font-weight:bold;cursor:pointer;margin-top:10px
+}
+button.secondary{background:#293750}
+input,textarea,select{
+  width:100%;background:#0d1524;color:white;
+  border:1px solid #34415c;border-radius:9px;
+  padding:13px;margin:9px 0;
+  font-size:14px
+}
+textarea{min-height:110px;resize:vertical}
+.task{
+  padding:13px;background:#1c2940;
+  border-radius:9px;margin:9px 0;
+  display:flex;justify-content:space-between;
+  gap:10px
+}
+.task button{margin:0;padding:7px 10px}
+footer{text-align:center;color:#65718b;padding:30px}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<header>
+  <div class="logo">PROJECT<span>PILOT</span> 🚀</div>
+  <p class="subtitle">Your intelligent multi-AI coding workspace</p>
+</header>
+
+<div class="card">
+<h2>Workspace Overview</h2>
+<div class="stat-grid">
+  <div class="stat">
+    <strong id="taskCount">0</strong>
+    <span class="muted">Active tasks</span>
+  </div>
+  <div class="stat">
+    <strong id="sessionCount">0</strong>
+    <span class="muted">Saved sessions</span>
+  </div>
+</div>
+</div>
+
+<div class="card">
+<h2>🤖 AI Providers</h2>
+
+<div class="provider">
+  <span>Claude</span>
+  <span class="badge">Not connected</span>
+</div>
+<div class="provider">
+  <span>OpenAI</span>
+  <span class="badge">Not connected</span>
+</div>
+<div class="provider">
+  <span>Google Gemini</span>
+  <span class="badge">Not connected</span>
+</div>
+
+<p class="muted" style="margin-top:15px">
+Provider connections will be implemented through a secure backend.
+No API keys should be entered into this page.
+</p>
+</div>
+
+<div class="card">
+<h2>📋 Task Manager</h2>
+<input id="taskInput" placeholder="What are you building?">
+<button onclick="addTask()">Add Task</button>
+<div id="tasks"></div>
+</div>
+
+<div class="card">
+<h2>🧠 Project Memory</h2>
+<textarea id="memory" placeholder="Save important project decisions, architecture and development progress..."></textarea>
+<button onclick="saveMemory()">Save Memory</button>
+<p class="muted" id="memoryStatus"></p>
+</div>
+
+<div class="card">
+<h2>🔄 Session Handoff</h2>
+<textarea id="handoff" placeholder="Describe completed work, unfinished tasks, modified files and the next steps..."></textarea>
+<button onclick="saveHandoff()">Save Handoff</button>
+<button class="secondary" onclick="downloadHandoff()">Export Handoff</button>
+<p class="muted" id="handoffStatus"></p>
+</div>
+
+<div class="card">
+<h2>⚙️ Development Status</h2>
+<p class="muted">
+ProjectPilot prototype is running locally in your browser.
+AI integrations, automatic usage monitoring and provider switching are not connected yet.
+</p>
+</div>
+
+<footer>PROJECTPILOT • BUILD WITHOUT LOSING CONTEXT</footer>
+
+</div>
+
+<script>
+const get = key => JSON.parse(localStorage.getItem(key)||"[]");
+const put = (key,value) =>
+  localStorage.setItem(key,JSON.stringify(value));
+
+let tasks=get("pp_tasks");
+
+function renderTasks(){
+  document.getElementById("tasks").innerHTML="";
+  tasks.forEach((task,i)=>{
+    const div=document.createElement("div");
+    div.className="task";
+
+    const label=document.createElement("span");
+    label.textContent=task;
+
+    const btn=document.createElement("button");
+    btn.className="secondary";
+    btn.textContent="Done";
+    btn.onclick=()=>{
+      tasks.splice(i,1);
+      put("pp_tasks",tasks);
+      renderTasks();
+    };
+
+    div.append(label,btn);
+    document.getElementById("tasks").appendChild(div);
+  });
+
+  document.getElementById("taskCount").textContent=tasks.length;
+}
+
+function addTask(){
+  const input=document.getElementById("taskInput");
+  if(!input.value.trim())return;
+  tasks.push(input.value.trim());
+  put("pp_tasks",tasks);
+  input.value="";
+  renderTasks();
+}
+
+function saveMemory(){
+  localStorage.setItem(
+    "pp_memory",
+    document.getElementById("memory").value
+  );
+  document.getElementById("memoryStatus").textContent="Memory saved.";
+}
+
+function saveHandoff(){
+  const value=document.getElementById("handoff").value;
+  localStorage.setItem("pp_handoff",value);
+  const sessions=get("pp_sessions");
+  sessions.push({
+    date:new Date().toISOString(),
+    content:value
+  });
+  put("pp_sessions",sessions);
+  document.getElementById("sessionCount").textContent=sessions.length;
+  document.getElementById("handoffStatus").textContent="Handoff saved.";
+}
+
+function downloadHandoff(){
+  const text=localStorage.getItem("pp_handoff")||"No handoff saved.";
+  const blob=new Blob([text],{type:"text/plain"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="projectpilot-handoff.txt";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById("memory").value=
+  localStorage.getItem("pp_memory")||"";
+
+document.getElementById("handoff").value=
+  localStorage.getItem("pp_handoff")||"";
+
+document.getElementById("sessionCount").textContent=
+  get("pp_sessions").length;
+
+renderTasks();
+</script>
+</body>
+</html>
