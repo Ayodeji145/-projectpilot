@@ -226,4 +226,22 @@ document.getElementById("sessionCount").textContent=
 renderTasks();
 </script>
 </body>
+<script>
+const PROJECTPILOT_API = "https://projectpilot-api.ayodejimarvelous27.workers.dev";
+
+async function checkProjectPilotBackend() {
+  try {
+    const response = await fetch(`${PROJECTPILOT_API}/api/health`);
+    const data = await response.json();
+
+    console.log("ProjectPilot Backend:", data);
+    return data.status === "healthy";
+  } catch (error) {
+    console.error("Backend connection failed:", error);
+    return false;
+  }
+}
+
+checkProjectPilotBackend();
+</script>
 </html>
