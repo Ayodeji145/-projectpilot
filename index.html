@@ -140,6 +140,30 @@ AI integrations, automatic usage monitoring and provider switching are not conne
 <footer>PROJECTPILOT • BUILD WITHOUT LOSING CONTEXT</footer>
 
 </div>
+<section class="card" id="projectpilot-chat">
+  <h2>🤖 ProjectPilot AI Assistant</h2>
+
+  <label for="pp-provider">Choose AI Provider</label>
+  <select id="pp-provider">
+    <option value="claude">Claude</option>
+    <option value="openai">OpenAI</option>
+    <option value="gemini">Google Gemini</option>
+  </select>
+
+  <div id="pp-chat-output"
+       style="min-height:100px; margin:15px 0; overflow-wrap:anywhere;">
+  </div>
+
+  <textarea
+    id="pp-chat-input"
+    placeholder="Ask ProjectPilot something..."
+    style="width:100%; min-height:80px;"
+  ></textarea>
+
+  <button onclick="sendProjectPilotMessage()">
+    Send Message
+  </button>
+</section>
 
 <script>
 const get = key => JSON.parse(localStorage.getItem(key)||"[]");
@@ -227,6 +251,42 @@ renderTasks();
 </script>
 </body>
 <script>
+async function sendProjectPilotMessage() {
+  const input = document.getElementById("pp-chat-input");
+  const output = document.getElementById("pp-chat-output");
+  const provider = document.getElementById("pp-provider").value;
+  const message = input.value.trim();
+
+  if (!message) return;
+
+  output.innerHTML += `<p><strong>You:</strong> ${escapePP(message)}</p>`;
+  input.value = "";
+
+  try {
+    const res = await fetch(
+      "https://projectpilot-api.ayodejimarvelous27.workers.dev/api/chat",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider, message })
+      }
+    );
+
+    const data = await res.json();
+
+    output.innerHTML +=
+      `<p><strong>ProjectPilot:</strong> ${escapePP(data.error || data.reply || "No response received.")}</p>`;
+  } catch (error) {
+    output.innerHTML +=
+      "<p><strong>ProjectPilot:</strong> Could not reach the backend.</p>";
+  }
+}
+
+function escapePP(value) {
+  const div = document.createElement("div");
+  div.textContent = String(value);
+  return div.innerHTML;
+}
 const PROJECTPILOT_API = "https://projectpilot-api.ayodejimarvelous27.workers.dev";
 
 async function checkProjectPilotBackend() {
